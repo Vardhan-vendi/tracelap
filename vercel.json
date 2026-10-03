@@ -3,7 +3,7 @@
   "buildCommand": "npm --prefix frontend install && npm --prefix frontend run build",
   "outputDirectory": "frontend/dist",
   "functions": {
-    "api/**/*.py": {
+    "api/index.py": {
       "maxDuration": 15,
       "memory": 1024,
       "includeFiles": "backend/**,tracer/**"
@@ -39,7 +39,7 @@
       "destination": "/api/index.py"
     },
     {
-      "source": "/((?!assets/|favicon|logo|icons|.*\\.[a-zA-Z0-9]+$).*)",
+      "source": "/((?!api/|uploads/|assets/|favicon|logo|icons|.*\\.[a-zA-Z0-9]+$).*)",
       "destination": "/index.html"
     }
   ]
