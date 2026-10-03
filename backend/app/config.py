@@ -62,7 +62,7 @@ class Settings(BaseModel):
     ollama_host: str = os.getenv("OLLAMA_HOST", "http://localhost:11434") or "http://localhost:11434"
     max_steps: int = _safe_int(os.getenv("MAX_STEPS"), 1000)
     timeout_sec: float = _safe_float(os.getenv("TIMEOUT_SEC"), 4.0)
-    admin_secret_key: str = os.getenv("ADMIN_SECRET_KEY", "codelearner-admin-2026") or "codelearner-admin-2026"
+    admin_secret_key: str = os.getenv("ADMIN_SECRET_KEY", "tracelap") or "tracelap"
     database_path: str = os.getenv("DATABASE_PATH", "") or ""
     upload_dir: str = os.getenv("UPLOAD_DIR", "") or ""
 
