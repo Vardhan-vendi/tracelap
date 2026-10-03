@@ -1,7 +1,9 @@
-"""Database operations for user feedback."""
+"""Database operations for user feedback with dual-persistence (SQLite + JSONL Backup + MongoDB Atlas)."""
 from datetime import datetime, timezone
 from typing import Optional, List, Dict, Any
 from backend.app.db.database import get_connection
+from backend.app.db.backup import append_backup_record
+from backend.app.db.mongo import get_mongo_db, is_mongo_active
 
 VALID_FEEDBACK_TYPES = {"GENERAL", "BUG", "FEATURE"}
 
@@ -40,6 +42,7 @@ def create_feedback(
     clean_screenshot = sanitize_text(screenshot_url, max_length=500)
     created_at = datetime.now(timezone.utc).isoformat()
     
+    # 1. Insert into local SQLite database
     with get_connection() as conn:
         cursor = conn.cursor()
         cursor.execute(
@@ -63,6 +66,32 @@ def create_feedback(
         feedback_id = cursor.lastrowid
         conn.commit()
 
+    record_dict = {
+        "id": feedback_id,
+        "rating": rating,
+        "message": clean_message,
+        "type": clean_type,
+        "name": clean_name,
+        "role": clean_role,
+        "screenshot_url": clean_screenshot,
+        "profile_url": clean_profile,
+        "display_permission": 1 if display_permission else 0,
+        "created_at": created_at,
+    }
+
+    # 2. Append-only persistent JSONL disk backup (Never loses data)
+    append_backup_record("feedbacks", record_dict)
+
+    # 3. Cloud persistence in MongoDB Atlas if enabled
+    if is_mongo_active():
+        try:
+            mongo_db = get_mongo_db()
+            if mongo_db is not None:
+                mongo_doc = {**record_dict, "id": str(feedback_id)}
+                mongo_db.feedbacks.insert_one(mongo_doc)
+        except Exception:
+            pass
+
     return {
         "id": feedback_id,
         "rating": rating,
@@ -83,6 +112,52 @@ def get_feedbacks(
     limit: int = 50,
     offset: int = 0,
 ) -> Dict[str, Any]:
+    # Query MongoDB Atlas if active
+    if is_mongo_active():
+        try:
+            mongo_db = get_mongo_db()
+            if mongo_db is not None:
+                query: Dict[str, Any] = {}
+                if feedback_type and feedback_type.upper() in VALID_FEEDBACK_TYPES:
+                    query["type"] = feedback_type.upper()
+                if rating is not None and 1 <= rating <= 5:
+                    query["rating"] = rating
+                if start_time:
+                    query["created_at"] = {"$gte": start_time}
+
+                total_count = mongo_db.feedbacks.count_documents(query)
+                cursor = (
+                    mongo_db.feedbacks.find(query)
+                    .sort("created_at", -1)
+                    .skip(offset)
+                    .limit(limit)
+                )
+
+                items = []
+                for doc in cursor:
+                    items.append({
+                        "id": doc.get("id", str(doc.get("_id"))),
+                        "rating": doc.get("rating"),
+                        "message": doc.get("message"),
+                        "type": doc.get("type"),
+                        "name": doc.get("name"),
+                        "role": doc.get("role"),
+                        "screenshotUrl": doc.get("screenshot_url") or doc.get("screenshotUrl"),
+                        "profileUrl": doc.get("profile_url") or doc.get("profileUrl"),
+                        "displayPermission": bool(doc.get("display_permission") or doc.get("displayPermission")),
+                        "createdAt": doc.get("created_at") or doc.get("createdAt"),
+                    })
+
+                return {
+                    "items": items,
+                    "total": total_count,
+                    "limit": limit,
+                    "offset": offset,
+                }
+        except Exception:
+            pass  # Fall back to SQLite on any error
+
+    # Fallback to SQLite
     conditions = []
     params: List[Any] = []
     
@@ -142,6 +217,30 @@ def get_feedbacks(
     }
 
 def get_public_feedbacks(limit: int = 20) -> List[Dict[str, Any]]:
+    if is_mongo_active():
+        try:
+            mongo_db = get_mongo_db()
+            if mongo_db is not None:
+                cursor = (
+                    mongo_db.feedbacks.find({"display_permission": 1})
+                    .sort("created_at", -1)
+                    .limit(limit)
+                )
+                return [
+                    {
+                        "id": doc.get("id", str(doc.get("_id"))),
+                        "rating": doc.get("rating"),
+                        "message": doc.get("message"),
+                        "type": doc.get("type"),
+                        "name": doc.get("name") or "Anonymous User",
+                        "role": doc.get("role") or "Learner",
+                        "createdAt": doc.get("created_at") or doc.get("createdAt"),
+                    }
+                    for doc in cursor
+                ]
+        except Exception:
+            pass
+
     with get_connection() as conn:
         cursor = conn.cursor()
         cursor.execute(

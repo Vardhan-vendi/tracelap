@@ -11,6 +11,7 @@ import {
   Loader2,
   Trash2,
 } from "lucide-react";
+import { trackEvent } from "../../utils/analytics";
 
 interface FeedbackModalProps {
   isOpen: boolean;
@@ -131,6 +132,14 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
         throw new Error(errData.detail || "Failed to submit feedback.");
       }
 
+      trackEvent("FEEDBACK_SUBMITTED", type, {
+        rating,
+        type,
+        hasScreenshot: !!finalScreenshotUrl,
+        hasProfile: !!profileUrl.trim(),
+        displayPermission,
+      });
+
       setIsSuccess(true);
       setTimeout(() => {
         // Reset state
@@ -153,6 +162,11 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
     }
   };
 
+  const handleClose = () => {
+    trackEvent("FEEDBACK_MODAL_CLOSED", "Feedback Modal");
+    onClose();
+  };
+
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 backdrop-blur-sm p-3 sm:p-4 overflow-y-auto">
       <div className="w-full max-w-lg bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden my-auto max-h-[92dvh] max-h-[92vh] flex flex-col">
@@ -168,7 +182,7 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
             </div>
           </div>
           <button
-            onClick={onClose}
+            onClick={handleClose}
             disabled={isSubmitting}
             aria-label="Close"
             className="p-1.5 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-slate-200 transition cursor-pointer disabled:opacity-50"
@@ -401,7 +415,7 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
               <div className="border-t border-slate-800 pt-3 flex items-center justify-end space-x-2">
                 <button
                   type="button"
-                  onClick={onClose}
+                  onClick={handleClose}
                   disabled={isSubmitting}
                   className="px-3.5 py-1.5 rounded-lg border border-slate-700 hover:bg-slate-800 text-slate-300 text-xs font-semibold transition cursor-pointer disabled:opacity-50"
                 >

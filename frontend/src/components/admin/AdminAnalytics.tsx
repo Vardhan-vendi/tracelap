@@ -21,6 +21,7 @@ import {
   EyeOff,
   X,
 } from "lucide-react";
+import { trackEvent } from "../../utils/analytics";
 
 interface AdminAnalyticsProps {
   onBackToApp: () => void;
@@ -144,9 +145,11 @@ export const AdminAnalytics: React.FC<AdminAnalyticsProps> = ({
       });
 
       if (!res.ok) {
+        trackEvent("ADMIN_LOGIN_FAILED", "Admin Analytics");
         throw new Error("Invalid admin secret key.");
       }
 
+      trackEvent("ADMIN_LOGIN_SUCCESS", "Admin Analytics");
       sessionStorage.setItem(ADMIN_STORAGE_KEY, keyToTest.trim());
       setAdminKey(keyToTest.trim());
       setIsAuthenticated(true);

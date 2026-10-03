@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { useTraceStore } from "../store/useTraceStore";
 import { FeedbackButton } from "./feedback/FeedbackButton";
+import { trackEvent } from "../utils/analytics";
 
 interface HeaderProps {
   onOpenSettings?: () => void;
@@ -53,6 +54,7 @@ export const Header: React.FC<HeaderProps> = ({
     reader.onload = (event) => {
       const text = event.target?.result;
       if (typeof text === "string") {
+        trackEvent("FILE_OPENED", "App Menu", { filename: file.name, size: file.size });
         setCode(text);
         reset();
       }
@@ -67,6 +69,7 @@ export const Header: React.FC<HeaderProps> = ({
     if (language.includes("JavaScript")) ext = "js";
     else if (language.includes("C++")) ext = "cpp";
 
+    trackEvent("FILE_SAVED", "App Menu", { language, extension: ext });
     const blob = new Blob([code], { type: "text/plain;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -162,6 +165,7 @@ export const Header: React.FC<HeaderProps> = ({
               {/* About & License */}
               <button
                 onClick={() => {
+                  trackEvent("ABOUT_OPENED", "App Menu");
                   setIsAppMenuOpen(false);
                   onOpenAbout?.();
                 }}

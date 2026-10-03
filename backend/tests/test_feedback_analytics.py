@@ -139,6 +139,40 @@ def test_upload_screenshot_png():
     assert data["success"] is True
     assert data["url"].startswith("/uploads/")
 
+def test_record_interactive_events():
+    events = [
+        ("FEEDBACK_MODAL_OPENED", "Feedback Modal", None),
+        ("ANIMATION_PLAY", "Controls", {"speed": 2}),
+        ("SPEED_CHANGED", "Controls", {"speed": 1.5}),
+        ("FILE_SAVED", "App Menu", {"language": "Python 3.12"}),
+    ]
+    for ev_type, feature, meta in events:
+        res = client.post("/api/analytics/event", json={
+            "eventType": ev_type,
+            "sessionId": "test-interactive-session",
+            "page": "/",
+            "feature": feature,
+            "metadata": meta,
+        })
+        assert res.status_code == 200
+        assert res.json()["success"] is True
+
+def test_persistent_backup_logging():
+    from backend.app.db.backup import read_backup_records
+    fb_records = read_backup_records("feedbacks")
+    ev_records = read_backup_records("analytics_events")
+    # Both should be lists and contain genuine data written during operations
+    assert isinstance(fb_records, list)
+    assert isinstance(ev_records, list)
+    assert len(fb_records) > 0
+    assert len(ev_records) > 0
+
+def test_mongodb_module_resilience():
+    from backend.app.db.mongo import is_mongo_active, get_mongo_client
+    # When MONGODB_URI is not set, should gracefully return False / None without error
+    assert is_mongo_active() is False
+    assert get_mongo_client() is None
+
 @pytest.fixture(scope="session", autouse=True)
 def cleanup_test_database():
     yield

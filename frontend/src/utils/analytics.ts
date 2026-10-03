@@ -1,21 +1,31 @@
 /**
- * Lightweight, privacy-respecting client analytics utility for CodeLearner.
+ * Lightweight, privacy-respecting client analytics utility for TRACELAP.
  * Completely asynchronous, non-blocking, and never interferes with user execution.
+ * Uses keepalive to prevent event loss during page navigation or reloads.
  */
 
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL as string) || "/api";
-const SESSION_KEY = "codelearner_anon_session_id";
+const SESSION_KEY = "tracelap_anon_session_id";
 
 /**
- * Retrieves existing anonymous session ID from sessionStorage or generates a new one.
- * Session ID is purely anonymous (random UUID) with zero personal data.
+ * Retrieves existing anonymous session ID or generates a persistent anonymous UUID.
+ * Session ID is purely anonymous with zero personal data.
  */
 export function getOrCreateSessionId(): string {
   try {
-    let id = sessionStorage.getItem(SESSION_KEY);
+    let id = localStorage.getItem(SESSION_KEY) || sessionStorage.getItem(SESSION_KEY);
     if (!id) {
       id = "s_" + (crypto?.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2, 15));
-      sessionStorage.setItem(SESSION_KEY, id);
+      try {
+        localStorage.setItem(SESSION_KEY, id);
+      } catch {
+        // Fallback if localStorage is disabled
+      }
+      try {
+        sessionStorage.setItem(SESSION_KEY, id);
+      } catch {
+        // Fallback if sessionStorage is disabled
+      }
     }
     return id;
   } catch {
@@ -33,7 +43,7 @@ export interface AnalyticsEventPayload {
 
 /**
  * Fires an analytics event in the background without awaiting or blocking.
- * Fails silently if offline or if backend is unreachable.
+ * Uses keepalive: true to guarantee delivery even if the user refreshes or closes the page.
  */
 export function trackEvent(
   eventType: string,
@@ -54,8 +64,9 @@ export function trackEvent(
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
+      keepalive: true,
     }).catch(() => {
-      // Non-blocking: silently ignore network errors so user experience is never impacted
+      // Non-blocking: silently ignore network errors
     });
   } catch {
     // Non-blocking: fail silently

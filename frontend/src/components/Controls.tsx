@@ -10,6 +10,7 @@ import {
   AlertTriangle,
 } from "lucide-react";
 import { useTraceStore } from "../store/useTraceStore";
+import { trackEvent } from "../utils/analytics";
 
 export const Controls: React.FC = () => {
   const {
@@ -72,7 +73,10 @@ export const Controls: React.FC = () => {
           </button>
 
           <button
-            onClick={togglePlay}
+            onClick={() => {
+              trackEvent(isPlaying ? "ANIMATION_PAUSE" : "ANIMATION_PLAY", "Controls", { speed: playbackSpeed });
+              togglePlay();
+            }}
             title={isPlaying ? "Pause" : "Play"}
             className="px-4 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs shadow-md shadow-indigo-600/30 transition flex items-center space-x-1.5 cursor-pointer"
           >
@@ -118,7 +122,10 @@ export const Controls: React.FC = () => {
             min={0}
             max={Math.max(0, totalSteps - 1)}
             value={currentStepIndex}
-            onChange={(e) => goToStep(parseInt(e.target.value))}
+            onChange={(e) => {
+              const val = parseInt(e.target.value);
+              goToStep(val);
+            }}
             className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500 hover:accent-indigo-400"
           />
         </div>
@@ -129,7 +136,10 @@ export const Controls: React.FC = () => {
           {[0.5, 1, 2].map((speed) => (
             <button
               key={speed}
-              onClick={() => setPlaybackSpeed(speed)}
+              onClick={() => {
+                trackEvent("SPEED_CHANGED", "Controls", { speed });
+                setPlaybackSpeed(speed);
+              }}
               className={`px-2 py-0.5 rounded text-[11px] font-semibold transition cursor-pointer ${
                 playbackSpeed === speed
                   ? "bg-indigo-600 text-white shadow"
