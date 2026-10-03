@@ -1,0 +1,155 @@
+@import "tailwindcss";
+
+@layer base {
+  *, ::before, ::after {
+    box-sizing: border-box;
+  }
+  
+  html, body, #root {
+    margin: 0;
+    padding: 0;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    background-color: #020617;
+    color: #f8fafc;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  }
+}
+
+/* ========================================================
+   Monaco Editor: Square Box Call Site / Recursion Styling
+   ======================================================== */
+
+/* Square Box for Recursion Call Site */
+.recursion-square-box {
+  border: 2px solid #f43f5e !important;
+  background-color: rgba(244, 63, 94, 0.16) !important;
+  box-shadow: inset 0 0 10px rgba(244, 63, 94, 0.3), 0 0 12px rgba(244, 63, 94, 0.25) !important;
+  box-sizing: border-box !important;
+  border-radius: 4px !important;
+  z-index: 10 !important;
+}
+
+/* Square Box for General Function Call Site */
+.caller-line-square-box {
+  border: 2px dashed #a855f7 !important;
+  background-color: rgba(168, 85, 247, 0.14) !important;
+  box-shadow: inset 0 0 8px rgba(168, 85, 247, 0.25) !important;
+  box-sizing: border-box !important;
+  border-radius: 4px !important;
+  z-index: 10 !important;
+}
+
+/* Square Glyph in Editor Gutter (Margin) */
+.recursion-glyph-square {
+  background-color: #f43f5e !important;
+  border: 1px solid #ffffff !important;
+  border-radius: 2px !important;
+  width: 9px !important;
+  height: 9px !important;
+  margin-left: 4px !important;
+  margin-top: 5px !important;
+  box-shadow: 0 0 6px #f43f5e !important;
+}
+
+.caller-glyph-square {
+  background-color: #a855f7 !important;
+  border: 1px solid rgba(255, 255, 255, 0.8) !important;
+  border-radius: 2px !important;
+  width: 9px !important;
+  height: 9px !important;
+  margin-left: 4px !important;
+  margin-top: 5px !important;
+  box-shadow: 0 0 6px #a855f7 !important;
+}
+
+/* Inline Badges at End of Calling Line */
+.recursion-call-label {
+  color: #fecdd3 !important;
+  background-color: rgba(159, 18, 57, 0.9) !important;
+  border: 1px solid #f43f5e !important;
+  border-radius: 4px !important;
+  padding: 1px 6px !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  font-family: monospace !important;
+  margin-left: 16px !important;
+  box-shadow: 0 0 8px rgba(244, 63, 94, 0.4) !important;
+}
+
+.caller-call-label {
+  color: #e9d5ff !important;
+  background-color: rgba(88, 28, 135, 0.9) !important;
+  border: 1px solid #a855f7 !important;
+  border-radius: 4px !important;
+  padding: 1px 6px !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  font-family: monospace !important;
+  margin-left: 16px !important;
+  box-shadow: 0 0 8px rgba(168, 85, 247, 0.3) !important;
+}
+
+/* ========================================================
+   Visualizer: Animated Green Return Arrow & Pulse
+   ======================================================== */
+@keyframes returnUpwardPulse {
+  0% {
+    transform: translateY(3px);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+  100% {
+    transform: translateY(3px);
+  }
+}
+
+.animate-return-arrow {
+  animation: returnUpwardPulse 1.1s ease-in-out infinite;
+}
+
+.return-badge-glow {
+  box-shadow: 0 0 14px rgba(16, 185, 129, 0.45), inset 0 0 6px rgba(16, 185, 129, 0.2) !important;
+}
+
+/* ========================================================
+   Completely Transparent Scrollbars
+   ======================================================== */
+* {
+  scrollbar-width: none !important; /* Firefox */
+  -ms-overflow-style: none !important; /* IE and Edge */
+}
+
+*::-webkit-scrollbar {
+  width: 0px !important;
+  height: 0px !important;
+  background: transparent !important;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent !important;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: transparent !important;
+}
+
+*::-webkit-scrollbar-corner {
+  background: transparent !important;
+}
+
+/* Monaco Editor Internal Scrollbars */
+.monaco-scrollable-element > .scrollbar {
+  background: transparent !important;
+}
+
+.monaco-scrollable-element > .scrollbar > .slider {
+  background: transparent !important;
+}
+
+.monaco-scrollable-element > .scrollbar.visible {
+  background: transparent !important;
+}
+

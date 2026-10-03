@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "code-learner"
+version = "0.1.0"
+description = "TRACELAP Code Flow Visualizer"
+requires-python = ">=3.10"
+dependencies = [
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.30.0",
+    "pydantic>=2.0.0",
+    "httpx>=0.27.0",
+    "python-dotenv>=1.0.0",
+]
+
+[tool.setuptools]
+packages = [
+    "backend",
+    "backend.app",
+    "backend.app.ai",
+    "backend.app.db",
+    "backend.app.routes",
+    "tracer",
+    "tracer.mocks",
+]
+
+[tool.setuptools.package-dir]
+tracer = "tracer/tracer"
+
+[tool.vercel]
+entrypoint = "backend.app.main:app"
+
+[tool.vercel.scripts]
+build = "npm --prefix frontend install && npm --prefix frontend run build"
