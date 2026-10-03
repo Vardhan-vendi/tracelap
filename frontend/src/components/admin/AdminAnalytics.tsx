@@ -260,7 +260,7 @@ export const AdminAnalytics: React.FC<AdminAnalyticsProps> = ({
               className="flex items-center space-x-1.5 text-xs text-slate-400 hover:text-slate-200 transition cursor-pointer"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
-              <span>Back to CodeLearner</span>
+              <span>Back to Tracelap</span>
             </button>
             <span className="text-[10px] font-mono uppercase tracking-widest px-2 py-0.5 rounded bg-indigo-950/80 text-indigo-400 border border-indigo-500/30">
               Admin Portal
@@ -272,7 +272,7 @@ export const AdminAnalytics: React.FC<AdminAnalyticsProps> = ({
               <Lock className="w-6 h-6" />
             </div>
             <h1 className="text-lg font-bold text-slate-100">
-              CodeLearner Analytics
+              Tracelap Analytics
             </h1>
             <p className="text-xs text-slate-400">
               Enter your admin security key to access the private usage
@@ -319,10 +319,6 @@ export const AdminAnalytics: React.FC<AdminAnalyticsProps> = ({
                   )}
                 </button>
               </div>
-              <p className="text-[10px] text-slate-500 mt-1">
-                Default key is configured in backend environment (
-                <code className="text-slate-400">ADMIN_SECRET_KEY</code>).
-              </p>
             </div>
 
             <button
@@ -353,13 +349,13 @@ export const AdminAnalytics: React.FC<AdminAnalyticsProps> = ({
             className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-800/80 hover:bg-slate-700 text-slate-300 text-xs font-medium transition cursor-pointer"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
-            <span>← Back to CodeLearner</span>
+            <span>← Back to tracelap</span>
           </button>
           <div className="h-5 w-[1px] bg-slate-800 hidden sm:block" />
           <div>
             <div className="flex items-center space-x-2">
               <span className="font-mono text-base font-extrabold tracking-tight text-slate-100">
-                CodeLearner Analytics
+                tracelap Analytics
               </span>
               <span className="text-[10px] font-mono px-2 py-0.2 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-bold">
                 Private Admin
