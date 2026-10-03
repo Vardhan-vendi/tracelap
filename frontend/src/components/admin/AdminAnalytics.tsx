@@ -283,8 +283,8 @@ export const AdminAnalytics: React.FC<AdminAnalyticsProps> = ({
   // RENDER: Login screen if not authenticated
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col justify-center items-center p-4">
-        <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-8 shadow-2xl space-y-6">
+      <div className="h-screen h-[100dvh] w-full overflow-y-auto bg-slate-950 text-slate-100 flex flex-col justify-center items-center p-4">
+        <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-8 shadow-2xl space-y-6 my-auto">
           <div className="flex items-center justify-between">
             <button
               onClick={onBackToApp}
@@ -371,7 +371,7 @@ export const AdminAnalytics: React.FC<AdminAnalyticsProps> = ({
 
   // RENDER: Full Admin Dashboard
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans select-none antialiased">
+    <div className="h-screen h-[100dvh] w-full overflow-y-auto overflow-x-hidden bg-slate-950 text-slate-100 flex flex-col font-sans antialiased">
       {/* Top Navbar */}
       <header className="border-b border-slate-800 bg-slate-900/90 backdrop-blur px-6 py-3.5 flex flex-wrap items-center justify-between gap-4 sticky top-0 z-30">
         <div className="flex items-center space-x-4">

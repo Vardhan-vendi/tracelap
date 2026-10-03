@@ -18,17 +18,26 @@ def get_db_path() -> str:
     if settings.database_path:
         db_path = settings.database_path
     elif os.environ.get("VERCEL") or os.environ.get("AWS_LAMBDA_FUNCTION_NAME"):
-        db_path = os.path.join(tempfile.gettempdir(), "codelearner_data", "codelearner.db")
+        db_path = os.path.join(tempfile.gettempdir(), "tracelap_data", "tracelap.db")
     else:
         backend_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-        db_path = os.path.join(backend_dir, "data", "codelearner.db")
+        db_path = os.path.join(backend_dir, "data", "tracelap.db")
+        
+        # If legacy codelearner.db exists and tracelap.db does not, migrate it over immediately
+        old_db_path = os.path.join(backend_dir, "data", "codelearner.db")
+        if os.path.isfile(old_db_path) and not os.path.isfile(db_path):
+            try:
+                import shutil
+                shutil.copy2(old_db_path, db_path)
+            except Exception:
+                pass
     
     # Ensure directory exists with fallback to /tmp if read-only
     db_dir = os.path.dirname(db_path)
     try:
         os.makedirs(db_dir, exist_ok=True)
     except OSError:
-        db_path = os.path.join(tempfile.gettempdir(), "codelearner_data", "codelearner.db")
+        db_path = os.path.join(tempfile.gettempdir(), "tracelap_data", "tracelap.db")
         os.makedirs(os.path.dirname(db_path), exist_ok=True)
         
     return db_path
