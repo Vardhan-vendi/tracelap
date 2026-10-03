@@ -29,11 +29,16 @@ ENV/
 .vercel/
 
 # Local Databases & Logs
-*.sqlite
-*.sqlite3
-*.db
 *.log
-backend/data/
+backend/data/*.db-shm
+backend/data/*.db-wal
+backend/data/codelearner.db
+!backend/data/tracelap.db
+!backend/data/backups/
+!backend/data/backups/**
+!backend/data/uploads/
+!backend/data/uploads/**
+
 
 # Node
 node_modules/

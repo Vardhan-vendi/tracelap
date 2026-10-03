@@ -12,15 +12,22 @@ logger = logging.getLogger(__name__)
 
 def get_backup_dir() -> str:
     """Returns the persistent directory for storing append-only JSONL backups."""
-    if settings.database_path:
+    if os.environ.get("VERCEL") or os.environ.get("AWS_LAMBDA_FUNCTION_NAME"):
+        backup_dir = os.path.join(tempfile.gettempdir(), "tracelap_data", "backups")
+    elif settings.database_path:
         base_dir = os.path.dirname(settings.database_path)
+        backup_dir = os.path.join(base_dir, "backups")
     else:
         base_dir = os.path.join(
             os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
             "data",
         )
-    backup_dir = os.path.join(base_dir, "backups")
-    os.makedirs(backup_dir, exist_ok=True)
+        backup_dir = os.path.join(base_dir, "backups")
+    try:
+        os.makedirs(backup_dir, exist_ok=True)
+    except OSError:
+        backup_dir = os.path.join(tempfile.gettempdir(), "tracelap_data", "backups")
+        os.makedirs(backup_dir, exist_ok=True)
     return backup_dir
 
 def get_backup_filepath(category: str) -> str:
@@ -44,9 +51,7 @@ def append_backup_record(category: str, record: Dict[str, Any]) -> None:
     except Exception as e:
         logger.error("Failed to append backup record for %s: %s", category, e)
 
-def read_backup_records(category: str) -> List[Dict[str, Any]]:
-    """Reads all valid JSON records from the category's backup file."""
-    filepath = get_backup_filepath(category)
+def _read_file_records(filepath: str) -> List[Dict[str, Any]]:
     if not os.path.isfile(filepath):
         return []
     records = []
@@ -61,5 +66,24 @@ def read_backup_records(category: str) -> List[Dict[str, Any]]:
                 except Exception:
                     pass
     except Exception as e:
-        logger.error("Failed to read backup records for %s: %s", category, e)
+        logger.error("Failed to read backup records from %s: %s", filepath, e)
     return records
+
+def read_backup_records(category: str) -> List[Dict[str, Any]]:
+    """Reads all valid JSON records from the category's backup file with fallback to bundled repo data."""
+    # 1. Check active runtime backup dir
+    records = _read_file_records(get_backup_filepath(category))
+    if records:
+        return records
+        
+    # 2. Check bundled repo backup dir
+    bundled_filepath = os.path.join(
+        os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
+        "data",
+        "backups",
+        f"{category}_backup.jsonl"
+    )
+    if os.path.isfile(bundled_filepath):
+        return _read_file_records(bundled_filepath)
+        
+    return []

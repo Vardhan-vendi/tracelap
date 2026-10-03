@@ -18,7 +18,21 @@ def get_db_path() -> str:
     if settings.database_path:
         db_path = settings.database_path
     elif os.environ.get("VERCEL") or os.environ.get("AWS_LAMBDA_FUNCTION_NAME"):
-        db_path = os.path.join(tempfile.gettempdir(), "tracelap_data", "tracelap.db")
+        tmp_db_dir = os.path.join(tempfile.gettempdir(), "tracelap_data")
+        db_path = os.path.join(tmp_db_dir, "tracelap.db")
+        
+        # If /tmp database does not exist, seed it from bundled backend/data/tracelap.db
+        if not os.path.isfile(db_path):
+            try:
+                os.makedirs(tmp_db_dir, exist_ok=True)
+                backend_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+                bundled_db = os.path.join(backend_dir, "data", "tracelap.db")
+                if os.path.isfile(bundled_db):
+                    import shutil
+                    shutil.copy2(bundled_db, db_path)
+                    logger.info("Successfully seeded /tmp database from bundled tracelap.db")
+            except Exception as e:
+                logger.warning("Could not seed database from bundle: %s", e)
     else:
         backend_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
         db_path = os.path.join(backend_dir, "data", "tracelap.db")
