@@ -28,7 +28,7 @@ interface AdminAnalyticsProps {
 }
 
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL as string) || "/api";
-const ADMIN_STORAGE_KEY = "codelearner_admin_key";
+const ADMIN_STORAGE_KEY = "tracelap_admin_key";
 
 interface KpiData {
   totalVisitors: number;
@@ -71,7 +71,7 @@ interface RecentEventItem {
 }
 
 interface FeedbackItem {
-  id: number;
+  id: number | string;
   rating: number;
   message: string;
   type: "GENERAL" | "BUG" | "FEATURE";
@@ -88,7 +88,11 @@ export const AdminAnalytics: React.FC<AdminAnalyticsProps> = ({
 }) => {
   // Auth state
   const [adminKey, setAdminKey] = useState<string>(() => {
-    return sessionStorage.getItem(ADMIN_STORAGE_KEY) || "";
+    return (
+      sessionStorage.getItem(ADMIN_STORAGE_KEY) ||
+      sessionStorage.getItem("codelearner_admin_key") ||
+      ""
+    );
   });
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [authError, setAuthError] = useState<string | null>(null);
