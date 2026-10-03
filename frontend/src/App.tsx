@@ -45,13 +45,19 @@ export function App() {
     runOutput,
   } = useTraceStore();
 
-  // Listen for browser popstate events (e.g. back/forward buttons)
+  // Listen for browser popstate and hashchange events
   useEffect(() => {
-    const handlePopState = () => {
-      setCurrentPath(window.location.pathname);
+    const handleLocationChange = () => {
+      setCurrentPath(
+        window.location.pathname + window.location.hash + window.location.search,
+      );
     };
-    window.addEventListener("popstate", handlePopState);
-    return () => window.removeEventListener("popstate", handlePopState);
+    window.addEventListener("popstate", handleLocationChange);
+    window.addEventListener("hashchange", handleLocationChange);
+    return () => {
+      window.removeEventListener("popstate", handleLocationChange);
+      window.removeEventListener("hashchange", handleLocationChange);
+    };
   }, []);
 
   // Track initial page view (privacy-safe, non-blocking)
@@ -64,8 +70,15 @@ export function App() {
     setCurrentPath(path);
   };
 
-  // Render private Admin Analytics Dashboard if under /admin/analytics
-  if (currentPath.startsWith("/admin")) {
+  const normalizedPath = currentPath.toLowerCase();
+  const isAdminRoute =
+    normalizedPath.startsWith("/admin") ||
+    normalizedPath.startsWith("/analytics") ||
+    normalizedPath.includes("admin") ||
+    normalizedPath.includes("analytics");
+
+  // Render private Admin Analytics Dashboard if under /admin or /analytics
+  if (isAdminRoute) {
     return (
       <Suspense
         fallback={
@@ -89,6 +102,7 @@ export function App() {
         onOpenSettings={() => setIsSettingsOpen(true)}
         onOpenFeedback={() => setIsFeedbackOpen(true)}
         onOpenAbout={() => setIsAboutOpen(true)}
+        onOpenAdmin={() => navigateTo("/admin/analytics")}
       />
 
       {/* Mobile Screen Navigation Bar (Code / Trace / Output) - Hidden completely on Laptops & Desktops (md:hidden) */}

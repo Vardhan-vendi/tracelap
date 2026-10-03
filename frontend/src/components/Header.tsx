@@ -9,6 +9,7 @@ import {
   FolderOpen,
   Download,
   Info,
+  Lock,
 } from "lucide-react";
 import { useTraceStore } from "../store/useTraceStore";
 import { FeedbackButton } from "./feedback/FeedbackButton";
@@ -18,12 +19,14 @@ interface HeaderProps {
   onOpenSettings?: () => void;
   onOpenFeedback?: () => void;
   onOpenAbout?: () => void;
+  onOpenAdmin?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
   onOpenSettings: _onOpenSettings,
   onOpenFeedback,
   onOpenAbout,
+  onOpenAdmin,
 }) => {
   const {
     code,
@@ -176,6 +179,28 @@ export const Header: React.FC<HeaderProps> = ({
                   <span>About & License</span>
                 </div>
                 <span className="text-[9px] text-slate-500 font-sans">MIT</span>
+              </button>
+
+              <div className="h-[1px] bg-slate-800 my-1" />
+
+              {/* Admin Dashboard */}
+              <button
+                onClick={() => {
+                  setIsAppMenuOpen(false);
+                  if (onOpenAdmin) {
+                    onOpenAdmin();
+                  } else {
+                    window.history.pushState({}, "", "/admin/analytics");
+                    window.dispatchEvent(new PopStateEvent("popstate"));
+                  }
+                }}
+                className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-mono text-left transition hover:bg-slate-800 text-slate-200 cursor-pointer"
+              >
+                <div className="flex items-center space-x-2">
+                  <Lock className="w-3.5 h-3.5 text-indigo-400" />
+                  <span>Admin Dashboard</span>
+                </div>
+                <span className="text-[9px] text-indigo-400/80 font-mono">Private</span>
               </button>
             </div>
             </>
