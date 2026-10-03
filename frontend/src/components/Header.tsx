@@ -86,7 +86,7 @@ export const Header: React.FC<HeaderProps> = ({
   ];
 
   return (
-    <header className="h-14 sm:h-16 border-b border-slate-800 bg-slate-900/95 backdrop-blur px-2.5 sm:px-4 md:px-6 flex items-center justify-between z-30 shrink-0 select-none shadow-md">
+    <header className="h-14 sm:h-16 border-b border-slate-800 bg-slate-900/95 backdrop-blur px-2.5 sm:px-4 md:px-6 flex items-center justify-between z-40 shrink-0 select-none shadow-md">
       {/* 1. Left: Menu Button & LANGUAGE MODE */}
       <div className="flex items-center space-x-1.5 sm:space-x-2.5">
         {/* Top-Left App Menu */}
@@ -106,10 +106,22 @@ export const Header: React.FC<HeaderProps> = ({
 
           {/* Menu Dropdown Popover */}
           {isAppMenuOpen && (
-            <div className="absolute left-0 top-full mt-2 w-56 rounded-xl bg-slate-950 border border-slate-700 shadow-2xl p-1.5 z-50 animate-in fade-in">
-              <div className="text-[10px] font-bold text-slate-500 uppercase px-2.5 py-1">
-                File & App
-              </div>
+            <>
+              {/* Tap backdrop to dismiss outside */}
+              <div
+                className="fixed inset-0 z-40"
+                onClick={() => setIsAppMenuOpen(false)}
+              />
+              <div className="absolute left-0 top-full mt-2 w-56 max-w-[calc(100vw-1rem)] rounded-xl bg-slate-950 border border-slate-700 shadow-2xl p-1.5 z-50 animate-in fade-in">
+                {/* Mobile Brand Info */}
+                <div className="flex items-center space-x-2 px-2.5 py-1.5 border-b border-slate-800 mb-1 sm:hidden">
+                  <img src="/logo.png" alt="TraceLap" className="h-4 w-auto" />
+                  <span className="font-mono font-bold text-xs text-slate-200">TraceLap</span>
+                </div>
+
+                <div className="text-[10px] font-bold text-slate-500 uppercase px-2.5 py-1">
+                  File & App
+                </div>
 
               {/* Open File */}
               <button
@@ -162,6 +174,7 @@ export const Header: React.FC<HeaderProps> = ({
                 <span className="text-[9px] text-slate-500 font-sans">MIT</span>
               </button>
             </div>
+            </>
           )}
         </div>
 
@@ -196,38 +209,45 @@ export const Header: React.FC<HeaderProps> = ({
 
           {/* Language Dropdown Menu */}
           {isLangMenuOpen && (
-            <div className="absolute left-0 top-full mt-2 w-56 rounded-xl bg-slate-950 border border-slate-700 shadow-2xl p-1.5 z-50 animate-in fade-in">
-              {languages.map((l) => (
-                <button
-                  key={l.name}
-                  disabled={!l.enabled}
-                  onClick={() => {
-                    setLanguage(l.name);
-                    setIsLangMenuOpen(false);
-                  }}
-                  className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-mono text-left transition ${
-                    l.enabled
-                      ? "hover:bg-slate-800 text-slate-200 cursor-pointer"
-                      : "opacity-40 text-slate-500 cursor-not-allowed"
-                  }`}
-                >
-                  <span>{l.name}</span>
-                  {l.enabled ? (
-                    <Check className="w-3.5 h-3.5 text-emerald-400" />
-                  ) : (
-                    <span className="text-[9px] px-1 py-0.2 rounded bg-slate-800 text-slate-400">
-                      {l.tag}
-                    </span>
-                  )}
-                </button>
-              ))}
-            </div>
+            <>
+              {/* Tap backdrop to dismiss outside */}
+              <div
+                className="fixed inset-0 z-40"
+                onClick={() => setIsLangMenuOpen(false)}
+              />
+              <div className="absolute left-0 top-full mt-2 w-56 max-w-[calc(100vw-1rem)] rounded-xl bg-slate-950 border border-slate-700 shadow-2xl p-1.5 z-50 animate-in fade-in">
+                {languages.map((l) => (
+                  <button
+                    key={l.name}
+                    disabled={!l.enabled}
+                    onClick={() => {
+                      setLanguage(l.name);
+                      setIsLangMenuOpen(false);
+                    }}
+                    className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-mono text-left transition ${
+                      l.enabled
+                        ? "hover:bg-slate-800 text-slate-200 cursor-pointer"
+                        : "opacity-40 text-slate-500 cursor-not-allowed"
+                    }`}
+                  >
+                    <span>{l.name}</span>
+                    {l.enabled ? (
+                      <Check className="w-3.5 h-3.5 text-emerald-400" />
+                    ) : (
+                      <span className="text-[9px] px-1 py-0.2 rounded bg-slate-800 text-slate-400">
+                        {l.tag}
+                      </span>
+                    )}
+                  </button>
+                ))}
+              </div>
+            </>
           )}
         </div>
       </div>
 
-      {/* 2. Center: TraceLap Brand Logo with Opening Opacity Transition Effect */}
-      <div className="flex items-center justify-center shrink-0 sm:shrink mx-1">
+      {/* 2. Center: TraceLap Brand Logo with Opening Opacity Transition Effect (Desktop / Tablet) */}
+      <div className="hidden min-[520px]:flex items-center justify-center shrink-0 sm:shrink mx-1">
         <img
           src="/logo.png"
           alt="TraceLap"

@@ -331,14 +331,15 @@ export const MemoryVisualization: React.FC<MemoryVisualizationProps> = ({
       >
         {/* Section Header with Frame Count, Mode Toggle & Tree Info */}
         <div className="flex items-center justify-between border-b border-indigo-500/20 pb-1.5 flex-wrap gap-2">
-          <div className="flex items-center space-x-2 text-[11px] font-mono font-bold tracking-wider text-indigo-300 uppercase">
+          <div className="flex items-center space-x-2 text-[11px] font-mono font-bold tracking-wider text-indigo-300 uppercase min-w-0">
             <Layers className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
-            <span>
+            <span className="truncate">
               {activeViewMode === "tree" ? "RECURSIVE CALL TREE" : "CALL STACK TRACE"}
             </span>
             {hasBranching && (
-              <span className="text-[9px] font-mono font-bold px-1.5 py-0.2 rounded bg-indigo-950 text-indigo-300 border border-indigo-500/50">
-                BRANCHING RECURSION
+              <span className="text-[9px] font-mono font-bold px-1.5 py-0.2 rounded bg-indigo-950 text-indigo-300 border border-indigo-500/50 shrink-0">
+                <span className="hidden sm:inline">BRANCHING RECURSION</span>
+                <span className="sm:hidden">BRANCHING</span>
               </span>
             )}
           </div>
@@ -858,26 +859,26 @@ export const MemoryVisualization: React.FC<MemoryVisualizationProps> = ({
                                 }`}
                               >
                                 {/* Left: Variable Name with indicator */}
-                                <div className="flex items-center space-x-1.5 shrink-0">
+                                <div className="flex items-center space-x-1.5 min-w-0 max-w-[45%]">
                                   {isTarget ? (
-                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shadow-sm shadow-emerald-400" />
+                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shadow-sm shadow-emerald-400 shrink-0" />
                                   ) : (
-                                    <span className="w-1 h-1 rounded-full bg-slate-600" />
+                                    <span className="w-1 h-1 rounded-full bg-slate-600 shrink-0" />
                                   )}
-                                  <span className="font-mono text-xs font-bold text-slate-200">
+                                  <span className="font-mono text-xs font-bold text-slate-200 truncate">
                                     {vName}
                                   </span>
                                 </div>
 
                                 {/* Right: Value Repr + Floating Comment Trigger Pills */}
-                                <div className="flex items-center space-x-1.5 shrink-0">
-                                  <span className="text-slate-600 text-[10px]">
+                                <div className="flex items-center space-x-1.5 min-w-0 justify-end flex-wrap sm:flex-nowrap">
+                                  <span className="text-slate-600 text-[10px] shrink-0">
                                     →
                                   </span>
 
                                   {/* Value or Pointer Badge */}
                                   {vSnap.is_pointer && vSnap.object_id ? (
-                                    <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-cyan-950 text-cyan-300 border border-cyan-500/40 font-semibold flex items-center space-x-1">
+                                    <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-cyan-950 text-cyan-300 border border-cyan-500/40 font-semibold flex items-center space-x-1 shrink-0">
                                       <span>
                                         {vSnap.type_name === "list"
                                           ? "List"
@@ -890,7 +891,7 @@ export const MemoryVisualization: React.FC<MemoryVisualizationProps> = ({
                                       </span>
                                     </span>
                                   ) : (
-                                    <span className="font-mono text-xs font-bold text-emerald-300">
+                                    <span className="font-mono text-xs font-bold text-emerald-300 truncate max-w-[120px] sm:max-w-none">
                                       {vSnap.value_repr}
                                     </span>
                                   )}
@@ -1032,7 +1033,7 @@ export const MemoryVisualization: React.FC<MemoryVisualizationProps> = ({
         >
           {/* Section Header with Object Count & Minimize Button */}
           <div className="flex items-center justify-between border-b border-cyan-500/20 pb-1.5 flex-wrap gap-1">
-            <div className="flex items-center space-x-1.5 text-[11px] font-mono font-bold tracking-wider text-cyan-300 uppercase">
+            <div className="flex items-center space-x-1.5 text-[11px] font-mono font-bold tracking-wider text-cyan-300 uppercase min-w-0">
               <Database className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
               <span className="truncate">HEAP MEMORY</span>
             </div>

@@ -253,6 +253,11 @@ export const VisualizerPane: React.FC = () => {
       const dx = touch.clientX - dragStartRef.current.mouseX;
       const dy = touch.clientY - dragStartRef.current.mouseY;
 
+      // On mobile at 100% zoom (zoom === 1), allow normal smooth vertical scrolling without canvas displacement
+      if (typeof window !== "undefined" && window.innerWidth < 768 && zoom === 1) {
+        return;
+      }
+
       if (!isDragging && (Math.abs(dx) > 4 || Math.abs(dy) > 4)) {
         setIsDragging(true);
       }
@@ -262,7 +267,7 @@ export const VisualizerPane: React.FC = () => {
         y: Math.round(dragStartRef.current.panY + dy),
       });
     },
-    [isDragging],
+    [isDragging, zoom],
   );
 
   const handleTouchEnd = useCallback(() => {
@@ -358,7 +363,7 @@ export const VisualizerPane: React.FC = () => {
           <span className="font-mono text-xs font-bold text-slate-200 tracking-wide hidden sm:inline">
             CODE VISUALIZE
           </span>
-          <span className="font-mono text-xs font-bold text-slate-200 tracking-wide sm:hidden">
+          <span className="font-mono text-xs font-bold text-slate-200 tracking-wide hidden min-[380px]:inline sm:hidden">
             VISUALIZE
           </span>
 
@@ -553,7 +558,7 @@ export const VisualizerPane: React.FC = () => {
                   </div>
 
                   {currentStep.stdout && (
-                    <span className="text-[10px] font-mono text-emerald-400 bg-emerald-950/40 border border-emerald-500/30 px-2 py-0.5 rounded shrink-0 ml-2">
+                    <span className="text-[10px] font-mono text-emerald-400 bg-emerald-950/40 border border-emerald-500/30 px-2 py-0.5 rounded shrink-0 ml-2 max-w-[120px] sm:max-w-none truncate">
                       stdout: {currentStep.stdout.trim()}
                     </span>
                   )}
@@ -572,7 +577,7 @@ export const VisualizerPane: React.FC = () => {
 
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
                     {/* Action Pill + Headline */}
-                    <div className="flex items-center space-x-2 overflow-hidden font-mono">
+                    <div className="flex items-center space-x-2 overflow-hidden font-mono min-w-0">
                       <span
                         className={`text-[9px] font-bold px-2 py-0.5 rounded border uppercase tracking-wider ${annotations.stepAction.theme.badgeBg} ${annotations.stepAction.theme.badgeBorder} ${annotations.stepAction.theme.badgeText} shrink-0`}
                       >
@@ -584,12 +589,12 @@ export const VisualizerPane: React.FC = () => {
                     </div>
 
                     {/* Floating Speech-Bubble message */}
-                    <div className="flex items-center space-x-1.5 shrink-0">
+                    <div className="flex items-center space-x-1.5 min-w-0">
                       <MessageSquare
                         className={`w-3.5 h-3.5 shrink-0 ${annotations.stepAction.theme.iconColor}`}
                       />
                       <span
-                        className={`text-[11px] font-sans font-medium ${annotations.stepAction.theme.accentText}`}
+                        className={`text-[11px] font-sans font-medium ${annotations.stepAction.theme.accentText} truncate`}
                       >
                         {annotations.stepAction.floatingComment}
                       </span>

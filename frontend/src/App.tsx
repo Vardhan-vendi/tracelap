@@ -80,7 +80,7 @@ export function App() {
   }
 
   return (
-    <div className="flex flex-col h-screen h-[100dvh] w-screen overflow-hidden bg-slate-950 text-slate-100 antialiased font-sans select-none">
+    <div className="flex flex-col h-full h-[100dvh] w-full max-w-full overflow-hidden bg-slate-950 text-slate-100 antialiased font-sans select-none">
       {/* Website Opening with Opacity Transition Effect */}
       <OpeningSplash />
 
@@ -92,7 +92,7 @@ export function App() {
       />
 
       {/* Mobile Screen Navigation Bar (Code / Trace / Output) - Hidden completely on Laptops & Desktops (md:hidden) */}
-      <div className="flex md:hidden items-center justify-around bg-slate-900/95 backdrop-blur border-b border-slate-800 px-3 py-1.5 shrink-0 z-20">
+      <div className="flex md:hidden items-center justify-around bg-slate-900/95 backdrop-blur border-b border-slate-800 px-3 py-1.5 shrink-0 z-30">
         <button
           onClick={() => setMobileTab("code")}
           className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-xl text-xs font-mono font-bold transition cursor-pointer ${

@@ -40,12 +40,12 @@ export const AboutModal: React.FC<AboutModalProps> = ({ isOpen, onClose }) => {
   return (
     <div
       onClick={onClose}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-3 sm:p-5 animate-in fade-in duration-200"
+      className="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 backdrop-blur-md p-3 sm:p-5 animate-in fade-in duration-200"
     >
       {/* Centered Popup Window */}
       <div
         onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-2xl bg-slate-900 border border-slate-700/80 rounded-2xl shadow-2xl shadow-black/80 overflow-hidden flex flex-col max-h-[88vh] ring-1 ring-white/10"
+        className="w-full max-w-2xl bg-slate-900 border border-slate-700/80 rounded-2xl shadow-2xl shadow-black/80 overflow-hidden flex flex-col max-h-[88dvh] max-h-[88vh] ring-1 ring-white/10"
       >
         {/* Window Title Bar */}
         <div className="flex items-center justify-between border-b border-slate-800 px-4 sm:px-6 py-3 sm:py-4 bg-slate-950/80 shrink-0">
