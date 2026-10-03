@@ -1,7 +1,7 @@
 """Private Admin API routes for analytics dashboard and feedback management."""
 import secrets
 from typing import Optional
-from fastapi import APIRouter, HTTPException, Header, Query
+from fastapi import APIRouter, HTTPException, Header, Query, Response
 from pydantic import BaseModel
 from backend.app.config import settings
 from backend.app.db.analytics import get_analytics_summary
@@ -49,15 +49,19 @@ def verify_key(body: VerifyKeyRequest):
 
 @router.get("/analytics")
 def get_admin_analytics(
+    response: Response,
     range: str = Query("all", pattern="^(today|7d|30d|all)$"),
     x_admin_key: Optional[str] = Header(None, alias="X-Admin-Key"),
     authorization: Optional[str] = Header(None, alias="Authorization"),
 ):
     verify_admin_key(x_admin_key, authorization)
+    response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+    response.headers["Pragma"] = "no-cache"
     return get_analytics_summary(date_range=range)
 
 @router.get("/feedback")
 def get_admin_feedback(
+    response: Response,
     type: Optional[str] = Query(None),
     rating: Optional[int] = Query(None, ge=1, le=5),
     limit: int = Query(50, ge=1, le=200),
@@ -66,6 +70,8 @@ def get_admin_feedback(
     authorization: Optional[str] = Header(None, alias="Authorization"),
 ):
     verify_admin_key(x_admin_key, authorization)
+    response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+    response.headers["Pragma"] = "no-cache"
     return get_feedbacks(
         feedback_type=type,
         rating=rating,

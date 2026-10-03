@@ -132,105 +132,128 @@ export const AdminAnalytics: React.FC<AdminAnalyticsProps> = ({
   // Auto-refresh state
   const [autoRefresh, setAutoRefresh] = useState<boolean>(false);
 
-  // 1. Verify key helper
-  const verifyAndLogin = async (keyToTest: string) => {
-    if (!keyToTest.trim()) {
-      setAuthError("Please enter the admin key.");
-      return;
-    }
-    setAuthLoading(true);
-    setAuthError(null);
+  // 1. Fetch dashboard analytics & feedbacks
+  const fetchDashboardData = useCallback(
+    async (overrideKey?: string) => {
+      const key = (
+        overrideKey ||
+        adminKey ||
+        sessionStorage.getItem(ADMIN_STORAGE_KEY) ||
+        sessionStorage.getItem("codelearner_admin_key") ||
+        ""
+      ).trim();
 
-    try {
-      const res = await fetch(`${API_BASE_URL}/admin/verify`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ key: keyToTest.trim() }),
-      });
+      if (!key) return;
+      setIsLoading(true);
+      setFetchError(null);
 
-      if (!res.ok) {
-        trackEvent("ADMIN_LOGIN_FAILED", "Admin Analytics");
-        throw new Error("Invalid admin secret key.");
+      try {
+        const headers = { "X-Admin-Key": key };
+        const timestamp = Date.now();
+
+        // Fetch analytics summary with cache-busting
+        const analyticsRes = await fetch(
+          `${API_BASE_URL}/admin/analytics?range=${dateRange}&_t=${timestamp}`,
+          {
+            headers,
+            cache: "no-store",
+          },
+        );
+
+        if (analyticsRes.status === 401) {
+          setIsAuthenticated(false);
+          sessionStorage.removeItem(ADMIN_STORAGE_KEY);
+          sessionStorage.removeItem("codelearner_admin_key");
+          throw new Error("Session expired or invalid key. Please log in again.");
+        }
+
+        if (!analyticsRes.ok) {
+          throw new Error(`Failed to load analytics (${analyticsRes.status})`);
+        }
+
+        const analyticsData = await analyticsRes.json();
+        setKpis(analyticsData.kpis);
+        setRatingDist(
+          analyticsData.ratingDistribution || { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
+        );
+        setFeaturesUsage(analyticsData.featuresUsage || []);
+        setLanguagesUsage(analyticsData.languagesUsage || []);
+        setActivityTimeline(analyticsData.activityTimeline || []);
+        setRecentEvents(analyticsData.recentEvents || []);
+
+        // Fetch feedback list with filters & cache-busting
+        let fbUrl = `${API_BASE_URL}/admin/feedback?limit=100&_t=${timestamp}`;
+        if (feedbackTypeFilter !== "ALL") fbUrl += `&type=${feedbackTypeFilter}`;
+        if (feedbackRatingFilter !== "ALL")
+          fbUrl += `&rating=${feedbackRatingFilter}`;
+
+        const fbRes = await fetch(fbUrl, { headers, cache: "no-store" });
+        if (fbRes.ok) {
+          const fbData = await fbRes.json();
+          setFeedbacks(fbData.items || []);
+          setTotalFeedbacks(fbData.total || 0);
+        }
+      } catch (err: any) {
+        setFetchError(err.message || "Error fetching dashboard data.");
+      } finally {
+        setIsLoading(false);
       }
+    },
+    [adminKey, dateRange, feedbackTypeFilter, feedbackRatingFilter],
+  );
 
-      trackEvent("ADMIN_LOGIN_SUCCESS", "Admin Analytics");
-      sessionStorage.setItem(ADMIN_STORAGE_KEY, keyToTest.trim());
-      setAdminKey(keyToTest.trim());
-      setIsAuthenticated(true);
-    } catch (err: any) {
-      setAuthError(err.message || "Failed to authenticate.");
-      setIsAuthenticated(false);
-    } finally {
-      setAuthLoading(false);
-    }
-  };
+  // 2. Verify key helper
+  const verifyAndLogin = useCallback(
+    async (keyToTest: string) => {
+      const cleanKey = keyToTest.trim();
+      if (!cleanKey) {
+        setAuthError("Please enter the admin key.");
+        return;
+      }
+      setAuthLoading(true);
+      setAuthError(null);
 
-  // 2. Fetch dashboard analytics & feedbacks
-  const fetchDashboardData = useCallback(async () => {
-    if (!adminKey) return;
-    setIsLoading(true);
-    setFetchError(null);
+      try {
+        const timestamp = Date.now();
+        const res = await fetch(`${API_BASE_URL}/admin/verify?_t=${timestamp}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ key: cleanKey }),
+          cache: "no-store",
+        });
 
-    try {
-      const headers = { "X-Admin-Key": adminKey };
+        if (!res.ok) {
+          trackEvent("ADMIN_LOGIN_FAILED", "Admin Analytics");
+          throw new Error("Invalid admin secret key.");
+        }
 
-      // Fetch analytics summary
-      const analyticsRes = await fetch(
-        `${API_BASE_URL}/admin/analytics?range=${dateRange}`,
-        {
-          headers,
-        },
-      );
-
-      if (analyticsRes.status === 401) {
+        trackEvent("ADMIN_LOGIN_SUCCESS", "Admin Analytics");
+        sessionStorage.setItem(ADMIN_STORAGE_KEY, cleanKey);
+        setAdminKey(cleanKey);
+        setIsAuthenticated(true);
+        await fetchDashboardData(cleanKey);
+      } catch (err: any) {
+        setAuthError(err.message || "Failed to authenticate.");
         setIsAuthenticated(false);
-        sessionStorage.removeItem(ADMIN_STORAGE_KEY);
-        throw new Error("Session expired or invalid key. Please log in again.");
+      } finally {
+        setAuthLoading(false);
       }
-
-      if (!analyticsRes.ok) {
-        throw new Error(`Failed to load analytics (${analyticsRes.status})`);
-      }
-
-      const analyticsData = await analyticsRes.json();
-      setKpis(analyticsData.kpis);
-      setRatingDist(
-        analyticsData.ratingDistribution || { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
-      );
-      setFeaturesUsage(analyticsData.featuresUsage || []);
-      setLanguagesUsage(analyticsData.languagesUsage || []);
-      setActivityTimeline(analyticsData.activityTimeline || []);
-      setRecentEvents(analyticsData.recentEvents || []);
-
-      // Fetch feedback list with filters
-      let fbUrl = `${API_BASE_URL}/admin/feedback?limit=100`;
-      if (feedbackTypeFilter !== "ALL") fbUrl += `&type=${feedbackTypeFilter}`;
-      if (feedbackRatingFilter !== "ALL")
-        fbUrl += `&rating=${feedbackRatingFilter}`;
-
-      const fbRes = await fetch(fbUrl, { headers });
-      if (fbRes.ok) {
-        const fbData = await fbRes.json();
-        setFeedbacks(fbData.items || []);
-        setTotalFeedbacks(fbData.total || 0);
-      }
-    } catch (err: any) {
-      setFetchError(err.message || "Error fetching dashboard data.");
-    } finally {
-      setIsLoading(false);
-    }
-  }, [adminKey, dateRange, feedbackTypeFilter, feedbackRatingFilter]);
+    },
+    [fetchDashboardData],
+  );
 
   // Initial check on mount
   useEffect(() => {
     const checkSavedKey = async () => {
-      const saved = sessionStorage.getItem(ADMIN_STORAGE_KEY);
+      const saved =
+        sessionStorage.getItem(ADMIN_STORAGE_KEY) ||
+        sessionStorage.getItem("codelearner_admin_key");
       if (saved) {
         await verifyAndLogin(saved);
       }
     };
     void checkSavedKey();
-  }, []);
+  }, [verifyAndLogin]);
 
   // Fetch when authenticated or filters change
   useEffect(() => {
@@ -241,17 +264,18 @@ export const AdminAnalytics: React.FC<AdminAnalyticsProps> = ({
     void loadData();
   }, [isAuthenticated, fetchDashboardData]);
 
-  // Auto-refresh interval (2 mins)
+  // Auto-refresh interval (10 seconds for live updates)
   useEffect(() => {
     if (!isAuthenticated || !autoRefresh) return;
     const interval = setInterval(() => {
       fetchDashboardData();
-    }, 120000);
+    }, 10000);
     return () => clearInterval(interval);
   }, [isAuthenticated, autoRefresh, fetchDashboardData]);
 
   const handleLogout = () => {
     sessionStorage.removeItem(ADMIN_STORAGE_KEY);
+    sessionStorage.removeItem("codelearner_admin_key");
     setAdminKey("");
     setIsAuthenticated(false);
   };
@@ -422,7 +446,7 @@ export const AdminAnalytics: React.FC<AdminAnalyticsProps> = ({
               onChange={(e) => setAutoRefresh(e.target.checked)}
               className="w-3.5 h-3.5 rounded border-slate-700 bg-slate-950 text-indigo-600 focus:ring-indigo-500"
             />
-            <span className="text-[11px]">Auto (2m)</span>
+            <span className="text-[11px]">Auto (10s)</span>
           </label>
 
           {/* Logout */}
