@@ -126,27 +126,34 @@ def init_db() -> None:
                     cur.execute("SELECT * FROM feedbacks ORDER BY id ASC")
                     for row in cur.fetchall():
                         append_backup_record("feedbacks", dict(row))
-                elif fb_count == 0 and len(fb_backup) > 0:
-                    # Restore from backup into empty SQLite database
+                elif len(fb_backup) > fb_count:
+                    # Restore/merge from backup into SQLite database
                     for r in fb_backup:
+                        msg = r.get("message", "")
+                        created = r.get("created_at") or r.get("createdAt", "")
                         cur.execute(
-                            """
-                            INSERT OR IGNORE INTO feedbacks (
-                                rating, message, type, name, role, screenshot_url, profile_url, display_permission, created_at
-                            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-                            """,
-                            (
-                                r.get("rating", 5),
-                                r.get("message", ""),
-                                r.get("type", "GENERAL"),
-                                r.get("name"),
-                                r.get("role"),
-                                r.get("screenshot_url") or r.get("screenshotUrl"),
-                                r.get("profile_url") or r.get("profileUrl"),
-                                1 if r.get("display_permission") or r.get("displayPermission") else 0,
-                                r.get("created_at") or r.get("createdAt", ""),
-                            ),
+                            "SELECT COUNT(*) FROM feedbacks WHERE message = ? AND created_at = ?",
+                            (msg, created),
                         )
+                        if cur.fetchone()[0] == 0:
+                            cur.execute(
+                                """
+                                INSERT INTO feedbacks (
+                                    rating, message, type, name, role, screenshot_url, profile_url, display_permission, created_at
+                                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                                """,
+                                (
+                                    r.get("rating", 5),
+                                    msg,
+                                    r.get("type", "GENERAL"),
+                                    r.get("name"),
+                                    r.get("role"),
+                                    r.get("screenshot_url") or r.get("screenshotUrl"),
+                                    r.get("profile_url") or r.get("profileUrl"),
+                                    1 if r.get("display_permission") or r.get("displayPermission") else 0,
+                                    created,
+                                ),
+                            )
                     conn.commit()
 
                 # Analytics backup & restore
@@ -157,23 +164,31 @@ def init_db() -> None:
                     cur.execute("SELECT * FROM analytics_events ORDER BY id ASC")
                     for row in cur.fetchall():
                         append_backup_record("analytics_events", dict(row))
-                elif ev_count == 0 and len(ev_backup) > 0:
+                elif len(ev_backup) > ev_count:
                     for r in ev_backup:
+                        sess = r.get("session_id") or r.get("sessionId", "anonymous")
+                        ev_type = r.get("event_type") or r.get("eventType", "PAGE_VIEW")
+                        created = r.get("created_at") or r.get("createdAt", "")
                         cur.execute(
-                            """
-                            INSERT OR IGNORE INTO analytics_events (
-                                event_type, session_id, page, feature, metadata, created_at
-                            ) VALUES (?, ?, ?, ?, ?, ?)
-                            """,
-                            (
-                                r.get("event_type") or r.get("eventType", "PAGE_VIEW"),
-                                r.get("session_id") or r.get("sessionId", "anonymous"),
-                                r.get("page", "/"),
-                                r.get("feature"),
-                                r.get("metadata") if isinstance(r.get("metadata"), str) else None,
-                                r.get("created_at") or r.get("createdAt", ""),
-                            ),
+                            "SELECT COUNT(*) FROM analytics_events WHERE session_id = ? AND event_type = ? AND created_at = ?",
+                            (sess, ev_type, created),
                         )
+                        if cur.fetchone()[0] == 0:
+                            cur.execute(
+                                """
+                                INSERT INTO analytics_events (
+                                    event_type, session_id, page, feature, metadata, created_at
+                                ) VALUES (?, ?, ?, ?, ?, ?)
+                                """,
+                                (
+                                    ev_type,
+                                    sess,
+                                    r.get("page", "/"),
+                                    r.get("feature"),
+                                    r.get("metadata") if isinstance(r.get("metadata"), str) else None,
+                                    created,
+                                ),
+                            )
                     conn.commit()
             except Exception as backup_err:
                 logger.warning("Auto backup/recovery check skipped: %s", backup_err)
