@@ -23,20 +23,7 @@
       "dest": "api/index.py"
     },
     {
-      "src": "/assets/(.*)",
-      "dest": "/assets/$1"
-    },
-    {
-      "src": "/favicon(.*)",
-      "dest": "/favicon$1"
-    },
-    {
-      "src": "/logo(.*)",
-      "dest": "/logo$1"
-    },
-    {
-      "src": "/icons(.*)",
-      "dest": "/icons$1"
+      "handle": "filesystem"
     },
     {
       "src": "/(.*)",
